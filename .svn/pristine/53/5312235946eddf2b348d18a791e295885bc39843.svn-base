@@ -1,0 +1,5 @@
+# disable directory browsing
+Options All -Indexes
+# RewriteEngine On
+ErrorDocument 403 /exam_app/assets/error-403/index.html
+ErrorDocument 404 /exam_app/assets/error-404/index.html

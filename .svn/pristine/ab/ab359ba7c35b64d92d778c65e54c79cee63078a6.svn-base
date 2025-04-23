@@ -1,0 +1,73 @@
+
+p {
+  width: auto;
+}
+
+.overflow-wrap {
+  overflow-wrap: break-word;
+}
+
+.word-break {
+  word-break: break-all;
+}
+
+.hyphens {
+  hyphens: auto;
+}
+
+.btn-primary.btn-outline.btn-number {
+    width: 17%;
+    margin-bottom: 6px;
+    padding: 3px 1px 3px 1px;
+    font-size: 11px;
+}
+.btn-primary.btn-outline.btn-select {
+  margin-top: 6px;
+  white-space: normal;
+  text-align: left;
+  min-width: 250px;
+}
+.text-wrap{
+  word-wrap: break-word;
+}
+
+
+.chat .panel-body ul {
+  list-style: none;
+  margin: -15px;
+  padding: 15px; }
+
+.chat .panel-body ul li {
+  margin-bottom: 10px;
+  padding: 15px 5px;
+  border-bottom: 1px solid #e9ecf2; }
+
+.chat ul li.left .chat-body {
+  margin-left: 80px; }
+
+.chat ul li.right .chat-body {
+  margin-right: 80px; }
+
+.chat ul li .chat-body p {
+  margin: 0; }
+
+.chat .panel-body {
+  overflow-y: scroll;
+  height: 455px; }
+
+.chat-body small {
+  margin-left: 5px; 
+}
+.navigasi{
+    text-align: center;
+    margin-top: 20px;
+}
+.opsi_answer{
+  margin-top: 20px;
+}
+.btn-primary.btn-outline.btn-number-review {
+    width: 9.65%;
+    margin-bottom: 6px;
+    padding: 3px 1px 3px 1px;
+    font-size: 11px;
+}

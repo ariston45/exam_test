@@ -1,0 +1,29 @@
+<ul class="nav menu">
+	<li <?php if(!isset($_GET['pg']) OR $_GET['pg'] == 'pic_dashboard' ){echo 'class="active"';}?>>
+		<a href="?pg=pic_dashboard"><em class="fa fa-dashboard">&nbsp;</em> Dashboard</a>
+	</li>
+	<li <?php if(isset($_GET['pg']) AND $_GET['pg'] == 'pic_voucher' OR $_GET['pg'] == 'pic_voucher_his'){echo 'class="active"';}?>>
+		<a href="?pg=pic_voucher"><em class="fa fa-dashboard">&nbsp;</em> Voucher</a>
+	</li>
+	<li <?php if(isset($_GET['pg']) AND $_GET['pg'] == 'pic_user' ){echo 'class="active"';} ?> >
+		<a href="?pg=pic_user"><em class="fa fa-users">&nbsp;</em>Users</a>
+	</li>
+	<li <?php if(isset($_GET['pg']) AND $_GET['pg'] == 'pic_student' OR $_GET['pg'] == 'pic_student_det'){echo 'class="active"';} ?> >
+		<a href="?pg=pic_student"><em class="fa fa-graduation-cap">&nbsp;</em>Student</a>
+	</li>
+	<li <?php if (isset($_GET['pg']) AND $_GET['pg'] == 'pic_classroom' OR $_GET['pg'] == 'pic_class_detail') {echo 'class="active"';} ?> >
+		<a href="?pg=pic_classroom"><em class="fa fa-tags">&nbsp;</em>Classroom</a>
+	</li>
+	<li <?php if (isset($_GET['pg']) AND $_GET['pg'] == 'pic_exam' OR $_GET['pg'] == 'pic_create_exam' OR $_GET['pg'] == 'pic_sch_detail') {echo 'class="active"';} ?> >
+		<a href="?pg=pic_exam"><em class="fa fa-book">&nbsp;</em>Exam</a>
+	</li>
+	<li <?php if(isset($_GET['pg']) AND $_GET['pg'] == 'pic_report' OR $_GET['pg'] == 'pic_report_view' ){echo 'class="active"';} ?> >
+		<a href="?pg=pic_report"><em class="fa fa-file-text-o">&nbsp;</em>Report</a>
+	</li>
+	<li <?php if(isset($_GET['pg']) AND $_GET['pg'] == 'pic_program_list' OR $_GET['pg'] == 'pic_report_view' ){echo 'class="active"';} ?> >
+		<a href="?pg=pic_program_list"><em class="fa fa-file-text-o">&nbsp;</em>Program List</a>
+	</li>
+	<!-- <li>
+		<a href="logout.php"><em class="fa fa-toggle-off">&nbsp;</em>Logout</a>
+	</li> -->
+</ul>

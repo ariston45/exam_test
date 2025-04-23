@@ -1,0 +1,221 @@
+<?php
+	if (isset($_POST['cmd'])) {
+		switch ($_POST['cmd']) {
+			case 'Submit':
+				$name = $_POST['name'];
+				$tot = $_POST['tot'];
+				$margin = $_POST['margin'];
+				$subject = $_POST['subject_labels'];
+				$duration = $_POST['duration'];
+				addProgram($name,$subject,$margin,$tot,$duration);
+				break;
+			case 'Update':
+				$id = $_POST['id'];
+				$tot = $_POST['tot'];
+				$no_id = $_POST['no_id'];
+				$name = $_POST['name'];
+				$margin = $_POST['margin'];
+				$subject = $_POST['subject'];
+				$percent = $_POST['percent'];
+				updateProgram($id,$name,$subject,$margin,$percent,$no_id,$tot);
+				break;
+			case 'Delete':
+				$id = $_POST['id'];
+				deleteProgram($id);
+				break;
+			default:
+				# code...
+				break;
+		}
+	}
+?>
+<script src='../assets/js/jquery-1.12.0.min.js'></script>
+<script src="../assets/js/jquery.repeatable.js"></script>
+<div class="row">
+	<div class="col-lg-12">
+		<h4><?php echo $_POST['cmd'] ;?></h4>
+	</div>
+	<div class="col-lg-12">
+		<div class="panel panel-info">
+			<div class="panel-heading">Programs</div>
+			<div class="panel-body">
+				<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add_program" type="button">Add Program</button><br><br>
+				<table class="table table-xs" id="tbProgram">
+					<thead>
+		            <tr>
+		                <th>No.</th>
+		                <th>Id Program</th>
+		                <th>Name</th>
+		                <th>Sum of Questions</th>
+		                <th>Options</th>
+		            </tr>
+		        </thead>
+				<tbody>
+				<?php
+					$no = 1;
+					$result=showProgram();
+					while($row = mysqli_fetch_array($result)){
+						echo '
+						<tr>
+							<td>'.$no.'</td>
+							<td>'.$row[0].'</td>
+							<td>'.$row[1].'</td>
+							<td>'.$row[2].'</td>
+							<td><a href="?pg=detail_programs&CC='.$row[0].'" class="btn btn-xs btn-info" > <i class="fa fa-info-circle"></i> Detail</a>&nbsp
+							<button type="button" class="btn btn-xs btn-primary "  data-id="'.$row[0].'" data-toggle="modal" data-target="#edit_program"><i class="fa fa-edit"></i>  Edit</button> &nbsp<button type="button" class="btn btn-xs btn-danger " data-id="'.$row[0].'"  data-toggle="modal" data-target="#delete_program"><i class="fa fa-trash"></i>  Delete</button></td>
+						</tr>
+						';
+						$no++;
+					}
+				?>
+			</tbody>
+			</table>
+			</div>
+		</div>
+	</div>
+
+<!-- modal add program -->
+			<div class="modal fade" id="add_program" role="dialog">
+		    <div class="modal-dialog">
+		    <!-- Modal content-->
+			<div class="modal-content">
+			    <div class="modal-header">
+			          <button type="button" class="close" data-dismiss="modal">&times;</button>
+			          <h4 class="modal-title">Add Program</h4>
+			        </div>
+			        <div class="modal-body">
+
+			        	<div class="row">
+			        		<form role="form" id="add_cust" action="" method="POST">
+			        		<div class="col-lg-12">
+			        			<div class="form-group">
+									<label>Name</label>
+									<input class="form-control"  name="name">
+								</div>
+								<div class="form-group">
+									<label>Sum of Questions</label>
+									<input class="form-control" type="number"  name="tot">
+								</div>
+								<div class="form-group">
+									<label>Duration</label>
+									<input class="form-control" type="number"  name="duration">
+								</div>
+								<div class="form-group">
+									<label>Exam Opportunity</label>
+									<select class="form-control" name="margin">
+											<?php
+								          		for ($i=1; $i <=5 ; $i++) { 
+								          		 echo "<option value='".$i."'>".$i."</option>";
+												}
+								          	?> 
+										</select>
+								</div>
+			        			<fieldset class="subject_labels">
+									<div class="repeatable"></div>
+									<div class="form-group" style="text-align:center;">
+										<input type="button" value="Add Subject" class="btn btn-sm btn-success add" align="center">
+									</div>
+
+								</fieldset>
+							
+			        		</div>
+			         </div>
+			        <div class="modal-footer">
+			        	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			        	<input type="submit" name="cmd" class="btn btn-primary" value="Submit">
+			        </div>
+			        </form>
+			      </div>
+		        </div>
+			</div>
+		</div>
+<!-- modal edit program -->
+			<div class="modal fade" id="edit_program" role="dialog">
+		    <div class="modal-dialog">
+		        <!-- Modal content-->
+			      <div class="modal-content">
+			        	<div class="fetched-data"></div> 
+			          
+			      </div>
+			</div>
+			</div>
+<!-- modal delete program -->
+			<div class="modal fade" id="delete_program" role="dialog">
+		    	<div class="modal-dialog">
+		        <!-- Modal content-->
+			      <div class="modal-content">
+			        
+			        	<div class="fetched-data"></div> 
+			          
+			      </div>
+		        </div>
+			</div>
+			<script>
+			$(document).ready(function() {
+				$('#tbProgram').DataTable();
+			} );
+			</script>
+			<script>
+			  $(document).ready(function(){
+			    $('#edit_program').on('show.bs.modal', function (e) {
+			        var rowid = $(e.relatedTarget).data('id');
+			        $.ajax({
+			            type : 'get',
+			            url : 'view_admin/2_edit_program.php', //Here you will fetch records 
+			            data :  'id='+ rowid, //Pass $id
+			            success : function(data){
+			            $('.fetched-data').html(data);//Show fetched data from database
+			            }
+			        });
+			     });
+			});
+
+			  $(document).ready(function(){
+			    $('#delete_program').on('show.bs.modal', function (e) {
+			        var rowid = $(e.relatedTarget).data('id');
+			        $.ajax({
+			            type : 'get',
+			            url : 'view_admin/2_delete_program.php', //Here you will fetch records 
+			            data :  'id='+ rowid, //Pass $id
+			            success : function(data){
+			            $('.fetched-data').html(data);//Show fetched data from database
+			            }
+			        });
+			     });
+			});
+			</script>
+
+<script type="text/template" id="subject_labels">
+      <div class="field-group row">
+  			<div class="col-lg-8">
+  			<label for="subject_id_{?}">Subject</label>
+  			<select class="form-control" name="subject_labels[{?}][subject_id]" value="{subject_id}" id="subject_id_{?}">
+					<?php
+						$result=showSubject();
+						while($row = mysqli_fetch_array($result)){
+						echo "<option value='".$row[0]."'>".$row[1]."</option>";
+						}
+					?> 
+			</select>
+  			</div>
+  			<div class="col-lg-2">
+  			<label for="percent_{?}">Percent</label>
+  			<input type="text" class="span2 form-control" name="subject_labels[{?}][percent]" value="{percent}" id="percent_{?}">
+			</div>
+			<div class="col-lg-2">
+			<label for="">Action</label><br>
+  			<input type="button" class="btn btn-sm btn-danger span-2 delete" value="Remove" />
+			</div>
+  		</div>
+		</script>
+
+		<script>
+		$(function() {
+			$(".subject_labels .repeatable").repeatable({
+				addTrigger: ".subject_labels .add",
+				deleteTrigger: ".subject_labels .delete",
+				template: "#subject_labels",
+				startWith: 1,
+			});
+		});
+		</script>

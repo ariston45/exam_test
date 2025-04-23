@@ -1,0 +1,13 @@
+.panel-info-costum{
+  background: #e9ecf2;
+  color: #7a2525;
+}
+.label-head{
+  font-size: larger;
+}
+.label-sub{
+  font-size: small;
+}
+.table-result{
+  margin-bottom: 0px;
+}

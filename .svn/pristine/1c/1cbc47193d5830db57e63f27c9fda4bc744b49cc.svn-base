@@ -1,0 +1,12 @@
+<ul class="nav menu">
+	<li <?php if (!isset($_GET['pg']) or $_GET['pg'] == 'proc_dashboard') {echo 'class="active"';} ?>>
+		<a href="?pg=proc_dashboard"><em class="fa fa-dashboard">&nbsp;</em> Dashboard</a>
+	</li>
+	<li <?php if (isset($_GET['pg']) and $_GET['pg'] == 'proc_exam' or $_GET['pg'] == 'proc_sch_detail') {echo 'class="active"';} ?>>
+		<a href="?pg=proc_exam"><em class="fa fa-clock-o">&nbsp;</em> Exam Schedule</a>
+	</li>
+	<li <?php if (isset($_GET['pg']) and $_GET['pg'] == 'proc_report') {echo 'class="active"';} ?>>
+		<a href="?pg=proc_report"><em class="fa fa-file-text-o">&nbsp;</em> Report</a>
+	</li>
+	<!-- <li><a href="logout.php"><em class="fa fa-toggle-off">&nbsp;</em>Logout</a></li> -->
+</ul>

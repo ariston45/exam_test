@@ -1,0 +1,103 @@
+<?php 
+include "../../cfg/general.php";
+include "../../control/inc_function.php";
+include "../../control/inc_function2.php";
+connectdb();
+$id = $_GET['id'];
+$res = editUser($id);
+$result = mysqli_fetch_array($res);
+$id = $_SESSION["admin_group"];
+?>
+<div class="modal-header">
+	<h4 class="modal-title">Edit User</h4>
+</div>
+<form action="" method="post" autocomplete="off">
+<div class="modal-body">
+	<div class="row">
+		<div class="col-md-6">
+				<div class="form-group">
+					<label>Name</label>
+					<input name="name" type="text" class="form-control" value="<?= $result[1];?>" placeholder="name lastname" id="name">
+					<input name="id" type="hidden" value="<?= $result[0]; ?>">
+				</div>
+				<div class="form-group">
+					<label>Place of Birt</label>
+					<input name="pob" type="text" class="form-control" value="<?= $result[2]; ?>" placeholder="City">
+				</div>
+				<div class="form-group">
+					<label>Date of Birth</label>
+					<div class="controls input-append date form_date"  data-date-format="yyyy-mm-dd" data-link-field="dtp_input1" data-date="<?= $result[3]; ?>">
+						<input class="form-control" name="dob" placeholder="yyyy-mm-dd" required value="<?= $result[3]; ?>">
+						<span class="add-on"><i class="icon-th"></i></span>
+						</div>
+				</div>
+				<div class="form-group">
+					<label>Address</label>
+					<input name="address" type="text" class="form-control" value="<?= $result[4]; ?>" placeholder="Jalan no.1">
+				</div>
+				<div class="form-group">
+					<label>Phone</label>
+					<input name="phone" type="text" class="form-control" value="<?= $result[5]; ?>" placeholder="+62852xx">
+				</div>
+		</div>
+		<div class="col-md-6">
+				<div class="form-group">
+				<label>Email</label>
+					<input name="email" type="text" class="form-control" value="<?= $result[6]; ?>" placeholder="someone@example.com">
+				</div>
+				<?php
+				$res = cekPIC($id);
+				$dat = mysqli_fetch_array($res);
+				if($dat[0]!=$result[0]){
+					echo '
+					<div class="form-group">
+					<label>Select Role</label>
+					<select name="role" id="" class="form-control">
+						<option value="role">'. $result[8] .'</option>
+						<option value="Exam Administration">Exam Administration</option>
+						<option value="Student Register">Student Register</option>
+						<option value="Proctor">Proctor</option>
+					</select>
+					</div>';
+				}else{
+					echo'<input type="hidden" name="role" value="role" >';
+				}
+				?>
+				<div class="form-group">
+					<label>Username Login</label>
+					<input name="username" type="text" class="form-control" value="<?= $result[7]; ?>" placeholder="username">
+				</div>
+				<div class="form-group">
+					<label>Set New Password</label>
+					<input name="pword" type="text" class="form-control" value="" placeholder="***">
+				</div>
+				<div class="form-group">
+					<label>Confirm Password</label>
+					<input name="pword_check" type="text" class="form-control" value="" placeholder="***">
+				</div>
+		</div>
+	</div>
+</div>	
+<div class="modal-footer">
+ 	<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+	<input type="submit" name="cmd" class="btn btn-primary btn-sm" value="Update">
+</div>
+			</form>
+
+
+
+<script src='../assets/js/jquery-1.12.0.min.js'></script>
+<script type="text/javascript" src="../assets/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+<script type="text/javascript" src="../assets/js/bootstrap-datetimepicker.id.js" charset="UTF-8"></script>
+<script type="text/javascript">
+   $('.form_date').datetimepicker({
+        language:  'fr',
+        weekStart: 1,
+        todayBtn:  1,
+		autoclose: 1,
+		todayHighlight: 1,
+		startView: 2,
+		minView: 2,
+		forceParse: 0
+    });
+</script>

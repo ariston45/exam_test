@@ -1,0 +1,292 @@
+<?php
+	if (isset($_POST['cmd'])) {
+		switch ($_POST['cmd']) {
+			case 'Add Subject':
+				$name = $_POST['name'];
+				$id = $_POST['id'];
+				$level = $_POST['level'];
+				addSubject($id,$name,$level);
+				break;
+			case 'Update Subject':
+				$id = $_POST['id'];
+				$name = $_POST['name'];
+				$level = $_POST['level'];
+				updateSubject($id,$name,$level);
+				break;
+			case 'Delete Subject':
+				$id = $_POST['id'];
+				$id_subject = $_POST['id_subject'];
+				deleteSubject($id,$id_subject);
+				break;
+			default:
+				# code...
+				break;
+		}
+	}
+?>
+<div class="row">
+	<div class="col-lg-12">
+		<h4><?php echo $_POST['cmd'] ;?></h4>
+	</div>
+	<div class="col-md-12">
+		<div class="panel panel-primary">
+			<div class="panel-heading">Question Bank</div>
+					<div class="panel-body tabs">
+						<ul class="nav nav-pills">
+							<li class="active"><a href="#pilltab1" data-toggle="tab">Question</a></li>
+							<li><a href="#pilltab2" data-toggle="tab">Subject</a></li>
+						</ul>
+						<!-- TAB SUBJECT -->
+						<div class="tab-content">
+							<div class="tab-pane fade in active" id="pilltab1">
+								<h4>Question </h4>
+								<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add_question" type="button"><i class="fa fa-plus-square-o"></i> Add Question</button>
+								<a href="?pg=import_soal"> <button class="btn btn-success btn-sm" type="button"><i class="fa fa-upload"></i> Upload Soal</button></a>
+								<a href="../assets/file/Example File Upload.xls"> <button class="btn btn-warning btn-sm" type="button"><i class="fa fa-download"></i> Example Format</button></a>
+								<br><br>
+								<table class="table table-xs" id="tbQuestion">
+									<thead>
+							            <tr>
+							                <th scope="col">No.</th>
+							                <th scope="col">Id Subject</th>
+							                <th scope="col">Question</th>
+							                <th scope="col">A</th>
+							                <th scope="col">B</th>
+							                <th scope="col">C</th>
+							                <th scope="col">D</th>
+							                <th scope="col">E</th>
+							                <th scope="col">Answer Key</th>
+							                <th scope="col">Option</th>
+							             </tr>
+							        </thead>
+									<tbody>
+										<?php
+											$no = 1;
+											$result=showQuestion();
+											while($row = mysqli_fetch_array($result)){
+												
+												echo '
+												<tr>
+													<td>'.$no.'</td>
+													<td>'.$row[1].'</td>
+													<td>'.str_replace("<img src=\"","<img style=\"max-width:230px;\" src=\"../".$GLOBALS["img-soal-dir"],$row[3]).'</td>
+													<td>'.$row[4].'</td>
+													<td>'.$row[5].'</td>
+													<td>'.$row[6].'</td>
+													<td>'.$row[7].'</td>
+													<td>'.$row[8].'</td>
+													<td>'.$row[9].'</td>
+													<td>
+													<button type="button" class="btn btn-xs btn-primary  "  data-id="'.$row[0].'" data-toggle="modal" data-target="#edit_question"><i class="fa fa-edit"></i>  Edit</button> &nbsp<button type="button" class="btn btn-xs btn-danger " data-id="'.$row[0].'"  data-toggle="modal" data-target="#delete_question"><i class="fa fa-trash"></i>  Delete</button></td>
+												</tr>
+												';
+												$no++;
+											}
+										?>
+									</tbody>
+								</table>
+							</div>
+
+						<!-- TAB Question -->
+							<div class="tab-pane fade" id="pilltab2">
+								<h4>Subject </h4> 
+								<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add_subject" type="button">Add Subject</button><br><br>
+								<table class="table" id="tbSubject" style="width: 100%;">
+									<thead>
+							            <tr>
+							                <th scope="col">No.</th>
+							                <th scope="col">Id Subject</th>
+							                <th scope="col">Subject Name</th>
+							                <th scope="col">Level</th>
+							                <th scope="col">Option</th>
+							            </tr>
+							        </thead>
+									<tbody>
+										<?php
+											$no = 1;
+											$result=showSubject();
+											while($row = mysqli_fetch_array($result)){
+												if ($row[0]!='0') {
+
+												echo '
+												<tr>
+													<td>'.$no.'</td>
+													<td>'.$row[0].'</td>
+													<td>'.$row[1].'</td>
+													<td>'.$row[2].'</td>
+													<td>
+													<button type="button" class="btn btn-xs btn-primary "  data-id="'.$row[0].'" data-toggle="modal" data-target="#edit_subject"><i class="fa fa-edit"></i>  Edit</button> &nbsp<button type="button" class="btn btn-xs btn-danger " data-id="'.$row[0].'"  data-toggle="modal" data-target="#delete_subject"><i class="fa fa-trash"></i>  Delete</button></td>
+												</tr>
+												';
+												$no++;
+												}
+											}
+										?>
+									</tbody>
+								</table>
+							</div>
+							
+						</div>
+					</div>
+				
+		</div>
+	</div>
+</div>
+<!-- MODAL add subject -->
+		<div class="modal fade" id="add_subject" role="dialog">
+		    <div class="modal-dialog">
+		    <!-- Modal content-->
+			<div class="modal-content">
+			    <div class="modal-header">
+			          <button type="button" class="close" data-dismiss="modal">&times;</button>
+			          <h4 class="modal-title">Add Subject</h4>
+			        </div>
+			        <div class="modal-body">
+			          <form role="form" id="add_subject" action="" method="POST">
+			          	<div class="form-group">
+							<label>Subject id</label>
+							<input class="form-control"  name="id">
+						</div>
+			          	<div class="form-group">
+							<label>Subject Name</label>
+							<input class="form-control"  name="name">
+						</div>
+						<div class="form-group">	
+							<label>Level</label>
+							<select  name="level" class="form-control">
+								<option value="1"> 1</option>
+								<option value="2"> 2</option>
+								<option value="3"> 3</option>
+								<option value="4"> 4</option>
+								<option value="5"> 5</option>
+							</select>
+						</div>
+			        </div>
+			        <div class="modal-footer">
+			        	<button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Close</button>
+			        	<input type="submit" name="cmd" class="btn btn-sm btn-success" value="Add Subject">
+			        </div> </form>
+			      </div>
+		        </div>
+			</div>
+<!-- Modal edit subject -->
+			<div class="modal fade" id="edit_subject" role="dialog">
+		    <div class="modal-dialog">
+		        <!-- Modal content-->
+			      <div class="modal-content">
+			       	<div class="fetched-data"></div> 
+			      </div>
+			</div>
+			</div>
+<!-- Modal delete subject -->
+			<div class="modal fade" id="delete_subject" role="dialog">
+		    <div class="modal-dialog">
+		        <!-- Modal content-->
+			      <div class="modal-content">
+			       
+			        	<div class="fetched-data"></div> 
+			          
+			      </div>
+		        </div>
+			</div>
+<!-- MODAL add question -->
+			<div class="modal fade" id="add_question" role="dialog">
+		    <div class="modal-dialog">
+		    <!-- Modal content-->
+			<div class="modal-content">
+			    <div class="modal-header">
+			          <button type="button" class="close" data-dismiss="modal">&times;</button>
+			          <h4 class="modal-title">Add Question</h4>
+			        </div>
+			        <div class="modal-body">
+			          Sorry, this menu is not ready to use
+			        </div>
+			        <!-- <div class="modal-footer">
+			        <input type="submit" name="cmd" class="btn btn-primary" value="Add Subject">
+			         
+			          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			        </div> </form>
+			      </div> -->
+		        </div>
+			</div>
+		</div>
+<!-- Modal edit question -->
+			<div class="modal fade" id="edit_question" role="dialog">
+		    <div class="modal-dialog">
+		        <!-- Modal content-->
+			      <div class="modal-content">
+			       	<div class="fetched-data"></div> 
+			      </div>
+			</div>
+			</div>
+<!-- Modal delete questions -->
+			<div class="modal fade" id="delete_question" role="dialog">
+		    <div class="modal-dialog">
+		        <!-- Modal content-->
+			      <div class="modal-content">
+			       	<div class="fetched-data"></div> 
+			      </div>
+			</div>
+			</div>
+ 			<script src='../assets/js/jquery-1.12.0.min.js'></script>
+			<script>
+			$(document).ready(function() {
+				$('#tbQuestion').DataTable();
+			} );
+			$(document).ready(function() {
+				$('#tbSubject').DataTable();
+			} );
+			 $(document).ready(function(){
+			    $('#edit_subject').on('show.bs.modal', function (e) {
+			        var rowid = $(e.relatedTarget).data('id');
+			        $.ajax({
+			            type : 'get',
+			            url : 'view_admin/3_edit_subject.php', //Here you will fetch records 
+			            data :  'id='+ rowid, //Pass $id
+			            success : function(data){
+			            $('.fetched-data').html(data);//Show fetched data from database
+			            }
+			        });
+			     });
+			});
+
+			  $(document).ready(function(){
+			    $('#delete_subject').on('show.bs.modal', function (e) {
+			        var rowid = $(e.relatedTarget).data('id');
+			        $.ajax({
+			            type : 'get',
+			            url : 'view_admin/3_delete_subject.php', //Here you will fetch records 
+			            data :  'id='+ rowid, //Pass $id
+			            success : function(data){
+			            $('.fetched-data').html(data);//Show fetched data from database
+			            }
+			        });
+			     });
+			});
+			  $(document).ready(function(){
+			    $('#delete_question').on('show.bs.modal', function (e) {
+			        var rowid = $(e.relatedTarget).data('id');
+			        $.ajax({
+			            type : 'get',
+			            url : 'view_admin/3_delete_question.php', //Here you will fetch records 
+			            data :  'id='+ rowid, //Pass $id
+			            success : function(data){
+			            $('.fetched-data').html(data);//Show fetched data from database
+			            }
+			        });
+			     });
+			});
+			  $(document).ready(function(){
+			    $('#edit_question').on('show.bs.modal', function (e) {
+			        var rowid = $(e.relatedTarget).data('id');
+			        $.ajax({
+			            type : 'get',
+			            url : 'view_admin/3_edit_question.php', //Here you will fetch records 
+			            data :  'id='+ rowid, //Pass $id
+			            success : function(data){
+			            $('.fetched-data').html(data);//Show fetched data from database
+			            }
+			        });
+			     });
+			});
+			</script>

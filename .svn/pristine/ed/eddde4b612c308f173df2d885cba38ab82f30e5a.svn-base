@@ -1,0 +1,30 @@
+<?php 
+include "../../cfg/general.php";
+include "../../control/inc_function.php";
+include "../../control/inc_function2.php";
+connectdb();
+$id= $_GET['id'];
+?>
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal">&times;</button>
+	<h4 class="modal-title">Top Up Voucher</h4>
+</div>
+<form role="form" action="" method="POST"  enctype="multipart/form-data">
+<div class="modal-body">
+		<div class="form-group">
+			<label>Voucher ID</label>
+			<input class="form-control"  name="id_voucher" value=<?=$id?> readonly>
+		</div>
+		<div class="form-group">
+			<label>Top-up</label>
+			<input type="number" class="form-control"  name="top-up" required="">
+			<input type="hidden" class="form-control"  name="cmd" value="top-up" >
+		</div>
+</div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Close</button>
+	<input type="submit" class="btn btn-sm btn-success" value="Submit">
+</div> 
+</form> 	
+
+

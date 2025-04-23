@@ -1,0 +1,202 @@
+<style type="text/css">
+#tbl th {
+  background-color: #30a5ff;
+  color: #fff;
+}
+</style>
+<?php
+if (isset($_POST['cmd'])) {
+	switch ($_POST['cmd']) {
+		case 'customer':
+			$start = $_POST['date_start'];
+			$end = $_POST['date_end'];
+			$by = $_POST['by'];
+			$customer = $_POST['customer'];
+			$result = admRpt_Cust($start,$end,$by,$customer);
+			echo "
+			<div class=\"row\">
+				<div class=\"col-lg-12\">
+					<h1></h1>
+				</div>
+				<div class=\"col-lg-12\">
+
+			";
+/*By Vouc*/	if ($by=='Voucher') {
+				echo "
+					<table id=\"tbl\" class=\"table table-bordered\">
+						<tr>
+							<th>No</th>
+							<th>Customer Name</th>
+							<th>Id Voucher</th>
+							<th>Id Program</th>
+							<th>Latest Top Up</th>
+							<th>Available</th>
+							<th>Use</th>
+							<th>Top Up</th>
+						</tr>
+				";
+				$no = 1;
+				while ($row = mysqli_fetch_row($result)) {
+					echo "
+					<tr>
+						<td>$no</td>
+						<td>".$row[1]."</td>
+						<td>".$row[2]."</td>
+						<td>".$row[3]."</td>
+						<td>".$row[5]."</td>
+						<td>".$row[4]."</td>
+						<td>".$row[6]."</td>
+						<td>".$row[7]."</td>
+					</tr>
+					";
+					$no++;
+				}		  
+/*By exam*/ } else if ($by=='Exam') {
+				 echo "
+					<table id=\"tbl\" class=\"table table-bordered\">
+						<tr>
+							<th>No</th>
+							<th>Customer Name</th>
+							<th>Id Exam Group</th>
+							<th>Date</th>
+							<th>Id Classroom</th>
+							<th>Proctor</th>
+							<th>Alocated </th>
+							<th>Participant</th>
+							<th>Voucher Cancel</th>
+						</tr>
+				";
+				$no = 1;
+				while ($row = mysqli_fetch_row($result)) {
+					echo "
+					<tr>
+						<td>$no</td>
+						<td>".$row[1]."</td>
+						<td>".$row[2]."</td>
+						<td>".$row[3]."</td>
+						<td>".$row[5]."</td>
+						<td>".$row[4]."</td>
+						<td>".$row[6]."</td>
+						<td>".$row[7]."</td>
+						<td>".$row[8]."</td>
+						<td>".$row[9]."</td>
+					</tr>
+					";
+					$no++;
+				}		  
+/*By Prog*/	} else if ($by=='Program') {
+		 	echo "
+				<table id=\"tbl\" class=\"table table-bordered\">
+					<tr>
+						<th>No</th>
+						<th>Customer Name</th>
+						<th>Program Name</th>
+						<th>Exams</th>
+						<th>Pass Rates </th>
+					</tr>
+			";
+			$no = 1;
+			while ($row = mysqli_fetch_row($result)) {
+			$sql1 = 
+			"select (sum(AA.kelulusan)/count(*)*100)kelulusan from (
+				select if(sum(a.percentage_true)/sum(a.percentage_true+a.percentage_false+a.percentage_null)*100>=c.pass_grade,1,0) kelulusan 
+				from exam_percentage a 
+				inner join exam_group b on a.exam_code=b.exam_code 
+				inner join programs c on SUBSTRING_INDEX(SUBSTRING_INDEX(group_name,'.',2),'.',-1) = c.id_program 
+				where b.exam_code in (".$row[0].") 
+				group by a.id_student,a.exam_code 
+			)AA";
+			$res = mysqli_query($GLOBALS['link'],$sql1) or die(mysqli_error($GLOBALS['link']));
+				while ($row1 = mysqli_fetch_row($res)) {
+					echo "
+					<tr>
+						<td>$no</td>
+						<td>".$row[2]."</td>
+						<td>".$row[1]."</td>
+						<td>".$row[3]."</td>
+						<td>".number_format($row1[0],2)."%</td>
+					</tr>
+					";
+					$no++;
+				}	
+			}	  
+		  }
+			
+			break;
+		case 'voucher':
+			$start = $_POST['date_start'];
+			$end = $_POST['date_end'];	
+			$voucher = $_POST['voucher'];	
+			//print_r($start.'<br>'.$end.'<br>'.$voucher);
+			$result = admRpt_Voucher($start,$end,$voucher);
+			echo "
+			<div class=\"row\">
+				<div class=\"col-lg-12\">
+					<h1></h1>
+				</div>
+				<div class=\"col-lg-12\">
+
+			";
+			echo "
+				<table id=\"tbl\" class=\"table table-bordered\">
+					<tr>
+						<th>No</th>
+						<th>Id Voucher</th>
+						<th>Customer Name</th>
+						<th>Program Name</th>
+						<th>Exam Group</th>
+						<th>Date Time</th>
+						<th>Alocated</th>
+						<th>Use</th>
+						<th>Cancel</th>
+						<th>Pass Rates </th>
+					</tr>
+			";
+			$no = 1;
+			while ($row = mysqli_fetch_row($result)) {
+			$sql1 = 
+			"select (sum(AA.kelulusan)/count(*)*100)kelulusan from (
+				select if(sum(a.percentage_true)/sum(a.percentage_true+a.percentage_false+a.percentage_null)*100>=c.pass_grade,1,0) kelulusan 
+				from exam_percentage a 
+				inner join exam_group b on a.exam_code=b.exam_code 
+				inner join programs c on SUBSTRING_INDEX(SUBSTRING_INDEX(group_name,'.',2),'.',-1) = c.id_program 
+				where b.exam_code = '".$row[7]."' 
+				group by a.id_student,a.exam_code 
+			)AA";
+			$res = mysqli_query($GLOBALS['link'],$sql1) or die(mysqli_error($GLOBALS['link']));
+				while ($row1 = mysqli_fetch_row($res)) {
+					echo "
+					<tr>
+						<td>$no</td>
+						<td>".$row[0]."</td>
+						<td>".$row[1]."</td>
+						<td>".$row[2]."</td>
+						<td>".$row[3]."</td>
+						<td>".$row[8]." ".$row[9]."</td>
+						<td>".$row[4]."</td>
+						<td>".$row[5]."</td>
+						<td>".$row[6]."</td>
+						<td>".number_format($row1[0],2)."%</td>
+					</tr>
+					";
+					$no++;
+				}	
+			}	  
+			break;
+		case 'exam':
+			$start = $_POST['date_start'];
+			$end = $_POST['date_end'];
+			$program = $_POST['E_program'];
+			$exam = $_POST['exam'];
+			print_r($start.'<br>'.$end.'<br>'.$program.'<br>'.$exam);
+			break;
+		case 'program':
+			$start = $_POST['date_start'];
+			$end = $_POST['date_end'];
+			$program = $_POST['program'];
+			print_r($start.'<br>'.$end.'<br>'.$program);
+			break;
+	}
+}
+
+?>

@@ -1,0 +1,520 @@
+<?php
+
+/*
+file version:20150804 14:00
+*/
+
+function getKodeUjian(){
+	global $id_peserta,$exam_group;
+	$kodeUjian="";
+	$sql="SELECT * FROM `exam_participants` WHERE `id_student`='".$id_peserta."' AND exam_group=$exam_group";
+	$rs=mysqli_query($GLOBALS['link'],$sql) or die(mysqli_error($GLOBALS['link']));
+	if ($row=mysqli_fetch_row($rs)){
+		$kodeUjian=$row[1];
+		//hapus data yang mempunyai kode ujian 02.2345.13.999
+	}
+	return $kodeUjian;
+}
+
+function getRemainingTime(){
+
+	$remainingtime = 0;
+	$id_peserta = $_SESSION['id_peserta'];
+	$kodeUjian = $_SESSION['exam_group'];
+	$sql="select duration from exam_schedule where exam_group='".$kodeUjian."'";
+	$rs=mysqli_query($GLOBALS['link'],$sql)or die(mysqli_error($GLOBALS['link']));
+	$durasi=60;
+	//echo $sql;
+	if ($row=mysqli_fetch_row($rs)){
+		$durasi=$row[0];
+	}
+	$skrg=sqlFormatDate(date("d/m/Y H:i:s"),"%d/%m/%Y %H:%i:%s");
+	$sql="select timediff(".$skrg.", start_time) elasped_time, ".$durasi." 
+		 from exam_session where id_student='".$id_peserta."'";
+	$rs=mysqli_query($GLOBALS['link'],$sql);
+	$remainingtime=0;
+	if ($row=mysqli_fetch_row($rs)){
+		$art=explode(":",$row[0]);
+		$elapsed=intVal($art[0]) * 60 * 60; //hour
+		$elapsed+=intVal($art[1]) * 60; //minute
+		$elapsed+=intVal($art[2]); //sec
+		$remainingtime = ($row[1]*60) - $elapsed;
+		//print_r($remainingtime);
+	}
+	return $remainingtime;
+}
+
+function viewSoal($id_peserta,$kodeUjian,$nomorSoal){
+	//global $remainingtime;
+	//print_r($id_peserta."___________".$kodeUjian);
+	//$id_peserta='2342338432.1';
+	//$kodeUjian=8;
+	$sql="select undecided,answer from exam_run_quest ";
+	$sql.=" where id_student='".$id_peserta."' and group_name='".$kodeUjian."'";
+	$rs=mysqli_query($GLOBALS['link'],$sql) or die(mysqli_error($GLOBALS['link']));
+	$jumlahSoal=0;
+	if ($jumlahSoal=mysqli_num_rows($rs)){
+//questions maps	
+		echo "
+		<div class=\"col-md-2\">
+          <div class=\"panel panel-default chat\">
+            <div class=\"custom-heading\" >
+              <i class=\"fa fa-bell fa-fw\"></i> Question Map
+            </div>
+            <div class=\"panel-body\" style=\"padding: 5px;\">
+              ";	
+              	$x=1;
+                while ($row = mysqli_fetch_row($rs)) {
+                	if ($x==$nomorSoal) {
+                		echo '<button type="button" style="background-color: #2e6da4;color: white;" class="btn btn-outline btn-primary btn-sm btn-number" onclick="formSubmitNumber('.$x.')" >'.$x.'. '.$row[1].'</button>&nbsp;';
+                	} else if ($row[0]=='True'){
+                   	 	echo '<button type="button" style="background-color: #ffbc00;" class="btn btn-outline btn-primary btn-sm btn-number" onclick="formSubmitNumber('.$x.')" >'.$x.'. '.$row[1].'</button>&nbsp;';
+                	} else if ($row[0]=='False'){
+                    	echo '<button type="button" style="background-color: #00b842;"" class="btn btn-outline btn-primary btn-sm btn-number" onclick="formSubmitNumber('.$x.')" >'.$x.'. '.$row[1].'</button>&nbsp;';
+                	} else {
+                    	echo '<button type="button" class="btn btn-outline btn-primary btn-sm btn-number" onclick="formSubmitNumber('.$x.')" >'.$x.'. '.$row[1].'</button>&nbsp;';
+                	}
+                $x++;
+                }
+                
+              echo "
+            </div>
+          </div>
+        </div>
+
+		";
+	}else{
+		echo "(1) A error! soal tidak tersedia!";
+		echo ("<script LANGUAGE='JavaScript'>
+    window.alert('Please Login Again');
+    window.location.href='../logout.php';
+    </script>");
+		die();
+	}
+	
+	if ($jumlahSoal==0){
+		echo "(2) error! soal tidak tersedia!";
+		echo ("<script LANGUAGE='JavaScript'>
+    window.alert('Please Login Again');
+    window.location.href='../logout.php';
+    </script>");
+		die();
+	}
+	$sql="select no_quest,question,val_a,val_b,val_c,val_d,val_e,grade,answer,no,undecided from exam_run_quest ";
+	$sql.=" where id_student='".$id_peserta."' and group_name='".$kodeUjian."' and no_quest='".$nomorSoal."'";
+	$rs=mysqli_query($GLOBALS['link'],$sql) or die(mysqli_error($GLOBALS['link']));
+	if ($row=mysqli_fetch_row($rs)){
+		//wrap jawaban
+		$jawab_a=wordwrap($jawab_a, 20, "<br>",true);
+		$jawab_b=wordwrap($jawab_b, 20, "<br>",true);
+		$jawab_c=wordwrap($jawab_c, 20, "<br>",true);
+		$jawab_d=wordwrap($jawab_d, 20, "<br>",true);
+		$jawab_e=wordwrap($jawab_e, 20, "<br>",true);
+		
+		$pertanyaan=$row[1];
+		$cari="<img src=\"";
+		$rplwith="<img style=\"max-height:390px; border:1px solid green; cursor:pointer;\" 
+							onclick=\"javascript:ngepop(this.src,10,10,900,600,1);\"	
+							src=\"../".$GLOBALS["img-soal-dir"];
+		$pertanyaan=str_replace($cari,$rplwith,$pertanyaan);
+        
+        $opsi= array("A","B","C","D","E");
+		$no=2;
+		foreach ($opsi as $value) {
+			$jawab[$value]=$row[$no];
+			$jawab[$value]=str_replace($cari,$rplwith,$jawab[$value]);
+		$no++;
+		}
+		$bobot=$row[7];
+		$jawaban=$row[8];
+		echo "
+		<div class=\"col-md-10\">
+          <div class=\"panel panel-default chat\">
+            <div class=\"custom-heading\">
+              <i class=\"fa fa-bar-chart-o fa-fw\"></i> Question Number ".$nomorSoal." of ".$jumlahSoal."
+            </div>
+            <div class=\"panel-body\">
+            	".$pertanyaan."            	
+            	<div id=\"opsi_answer\" class=\"opsi_answer\">
+         ";
+//jawaban div id opsi jawaban
+        foreach ($opsi as $key => $value) {
+        	if ($jawaban==$value) {
+        	 	echo '<button type="button" class="btn btn-outline btn-primary btn-sm btn-select active" onclick="setAnswer(\''.$value.'\')" > '.$value.'.'.$jawab[$value].'</button><br>';
+        	 } else {
+        	 	echo '<button type="button" class="btn btn-outline btn-primary btn-sm btn-select" onclick="setAnswer(\''.$value.'\')" > '.$value.'.'.$jawab[$value].'</button><br>';
+        	 }
+        }
+        echo "</div>
+        <div class='navigasi'> ";
+// tombol navigasi 
+		echo "<form id=\"navigation\" action=\"\" method=\"POST\">
+				<input type='hidden' id=\"no\" name='no' value=".$nomorSoal."> 	
+				<input type='hidden' id=\"act\" name='act' > 	
+				<input type='hidden' id=\"answer\" name='answer' value=\"".$jawaban."\" > 	
+				<input type='hidden' id=\"id_soal\" name='id_soal' value=\"".$row[9]."\" > 	
+	         ";
+        if ($nomorSoal > 1){
+			echo "<input class = \"btn btn-sm btn-success\" value=\"Prev\" onclick=\"formSubmitPrev()\">&nbsp";
+		}
+		if ($nomorSoal < $jumlahSoal){
+			echo "<input class = \"btn btn-sm btn-success\" value=\"Next\" onclick=\"formSubmitNext()\">";
+		} 
+		if ($row[10]=='True') {
+			echo "&nbsp<input class = \"btn btn-sm btn-warning\" value=\"Unmark\" onclick=\"formSubmitUnmark()\"> &nbsp";
+		}else{
+			echo "&nbsp<input class = \"btn btn-sm btn-warning\" value=\"Mark\" onclick=\"formSubmitMark()\"> &nbsp";
+		}
+
+	   
+        echo "</form>";
+ 		if ($nomorSoal == $jumlahSoal){
+			echo "<a href=\"review.php\"><button class =\"btn btn-sm btn-primary\"> Review </button></a>
+			";
+		} 
+        echo"
+        		</div>
+        		</div>
+        	</div>  
+          </div>
+        </div>
+       <script>
+        function setAnswer(\$id) {
+		    document.getElementById('answer').value=\$id;
+			document.getElementById('act').value='SetAnswer';
+		    document.getElementById('navigation').submit();
+		}
+		function formSubmitPrev() {
+			document.getElementById('act').value='Prev';
+		    document.getElementById('navigation').submit();
+		}
+		function formSubmitNext() {
+			document.getElementById('act').value='Next';
+		    document.getElementById('navigation').submit();
+		}
+		function formSubmitMark() {
+			document.getElementById('act').value='Mark';
+		    document.getElementById('navigation').submit();
+		}
+		function formSubmitUnmark() {
+			document.getElementById('act').value='Unmark';
+		    document.getElementById('navigation').submit();
+		}
+		function formSubmitNumber(\$id) {
+			document.getElementById('no').value = \$id;
+		    document.getElementById('navigation').submit();
+		}
+
+		</script>
+		";
+	}
+}
+function updateRunQuest($answer,$no){
+	$sql = "UPDATE `exam_run_quest` SET `answer`= '$answer', `undecided`= 'false' WHERE `no`=$no";
+	mysqli_query($GLOBALS['link'],$sql) or die(mysqli_error($GLOBALS['link']));
+}
+function updateUndecided($no,$undecided){
+	$sql = "UPDATE `exam_run_quest` SET `undecided`= '$undecided' WHERE `no`=$no";
+	mysqli_query($GLOBALS['link'],$sql) or die(mysqli_error($GLOBALS['link']));
+}
+
+function endSession($id_peserta,$exam_group){
+	$sql="update exam_session set end_time=".sqlFormatDate(date("m/d/Y H:i"),"%m/%d/%Y %H:%i")."
+				 where id_student='".$id_peserta."'";
+	//echo $sql;
+	mysqli_query($GLOBALS['link'],$sql) or  die(mysqli_error($GLOBALS['link']));
+	//$sql="delete from exam_run_quest where id_student='".$id_peserta."'";
+	//mysqli_query($GLOBALS['link'],$sql);
+	
+	logLogout($_SESSION['user_id']);
+	$_SESSION["user_id"]="";
+	$_SESSION["id_peserta"]="";
+	$_SESSION["user_name"]="";
+	$_SESSION["user_group"]="";
+	$_SESSION["exam_group"]="";
+}
+
+function activateNextId($user_id){
+	$sql=" select id_peserta from user_test where user_id ='".$user_id."' and status=0 order by prioritas,id_peserta";
+	$rs=mysqli_query($GLOBALS['link'],$sql);
+	if ($row=mysqli_fetch_row($rs)){
+		$newid=$row[0];
+		$eff_date=sqlFormatDate(date("m/d/y 00:00",strtotime("+1 day")));
+		$sql="update user_test set status=1,eff_date=".$eff_date." where id_peserta='".$newid."'";
+		mysqli_query($GLOBALS['link'],$sql);
+	}
+}
+function showResultExam ($id_peserta,$exam_group){
+	$id_student=explode('.',$id_peserta,-1);
+	$student_data=getDataStudent($id_student[0]);
+	echo " <style>
+      table, td, th {
+          border: 1px solid black;
+      }
+      th {
+          background: lightblue;
+      }
+      table {
+          text-align:center; 
+          margin-left:auto; 
+          margin-right:auto; 
+          border-collapse: collapse;
+          width: 80%;
+      }
+      th {
+          height: 30px;
+      }
+      .button {
+		    background-color: #4CAF50; /* Green */
+		    border: none;
+		    color: white;
+		    padding: 5px 30px;
+		    text-align: center;
+		    text-decoration: none;
+		    display: inline-block;
+		    font-size: 14px;
+		    margin: 2px 2px;
+		    cursor: pointer;
+		    border-radius:5px
+		}
+		.button3 {background-color: #f44336;} /* Red */ 
+
+      </style>";
+$sql="select a.exam_code,a.id_voucher,c.pass_grade,c.margin from exam_group a join transact_voucher b on a.id_voucher=b.id_voucher join programs c on b.id_program=c.id_program where a.exam_code=$exam_group";
+$rs=mysqli_query($GLOBALS['link'],$sql) or die(mysqli_error($GLOBALS['link']));
+$result=mysqli_fetch_row($rs);
+$persen_lulus=$result[2];
+$sql="SELECT subject,
+	sum( if( upper(answer) = upper(val_key), 1, 0 ) ) benar,
+	sum( if( upper(answer) != upper(val_key), 1, 0 ) ) salah,
+	sum( if( upper(answer) is null, 1, 0 ) ) kosong, 
+	count( * ) jumlahsoal
+      FROM exam_run_quest
+      WHERE group_name = '".$exam_group."'
+      AND id_student = '".$id_peserta."'
+      group by subject";
+  $rs=mysqli_query($GLOBALS['link'],$sql) or die(mysqli_error($GLOBALS['link']));
+  	echo "<div style='text-align:center'>";
+  	echo "<table>";
+	echo "<tr><td rowspan=2 width=270px> <img style=\"max-width: 270px; max-height:100px;\" src= '../assets/img/logo/".$student_data[2]."'> </td><th>ID </th><th colspan=3> ".$student_data[1]."</th></tr>";
+	echo "<tr><th>NAME </th><th colspan=3> ".$student_data[0]."</th></tr>";
+	echo "<tr>
+			<td colspan=5 style=\"height: 60px;\"><h2 style=\"margin: 0px;\">RESULT</h2></td>	
+		  </tr>";
+   echo "
+      <tr>
+        <th rowspan='2'>Subject</th>
+        <th rowspan='2'>Question</th>
+        <th colspan=3>Answer</th>
+      </tr>
+      <tr>
+        <th>True </th>
+        <th>False </th>
+        <th>Not Answer </th>
+      </tr>";
+  while ($row=mysqli_fetch_row($rs)){
+    $benar+=$row[1];
+    $soal+=$row[4];
+//insert exam_percentage 
+    $qwr = "INSERT INTO `exam_percentage`( `exam_code`, `id_student`, `id_subject`, `percentage_true`, `percentage_false`, `percentage_null`) VALUES  ('$exam_group','$id_peserta','$row[0]',$row[1],$row[2],$row[3])";
+    mysqli_query($GLOBALS['link'],$qwr) or die(mysqli_error($GLOBALS['link']));
+
+    $result=mysqli_fetch_row(editSubject($row[0]));
+    echo "
+      <tr>
+        <td>".$result[2]."</td>
+        <td>".$row[4]."</td>
+        <td>".$row[1]."</td>
+        <td>".$row[2]."</td>
+        <td>".$row[3]."</td>
+      </tr>";
+  }
+ 
+  $percent=$benar/$soal*100;
+  
+  //echo $percent."/".$persen_lulus."<br>";
+  if ($percent >= $persen_lulus){
+    $lulus=" (LULUS)";
+    $berhasil=true;
+  }else{
+    $lulus=" (<font color=\"red\">TIDAK LULUS!</font>)";
+    $berhasil=false;
+  }
+  echo "<tr>
+  		 <td colspan=5 height=70px><h3 style=\"margin: 0px;\"> Test Score : ".number_format($percent,2)." % <br>$lulus </h3></td>
+  		</tr>
+  		";
+  echo "</table><br><br>";
+  echo "<a href= '../logout.php' class='button button3'>Logout</a>";
+  echo "</div>";
+} 
+
+function viewResultExam ($exam_group){
+	global $id_peserta;
+	$id_student=explode('.',$id_peserta,-1);
+	$student_data=getDataStudent($id_student[0]);
+	echo " <style>
+      table, td, th {
+          border: 1px solid black;
+      }
+      th {
+          background: lightblue;
+      }
+      table {
+          text-align:center; 
+          margin-left:auto; 
+          margin-right:auto; 
+          border-collapse: collapse;
+          width: 80%;
+      }
+      th {
+          height: 30px;
+      }
+      .button {
+		    background-color: #4CAF50; /* Green */
+		    border: none;
+		    color: white;
+		    padding: 5px 30px;
+		    text-align: center;
+		    text-decoration: none;
+		    display: inline-block;
+		    font-size: 14px;
+		    margin: 2px 2px;
+		    cursor: pointer;
+		    border-radius:5px
+		}
+		.button3 {background-color: #f44336;} /* Red */ 
+
+      </style>";
+$sql="select a.exam_code,a.id_voucher,c.pass_grade,c.margin from exam_group a join transact_voucher b on a.id_voucher=b.id_voucher join programs c on b.id_program=c.id_program where a.exam_code=$exam_group";
+$rs=mysqli_query($GLOBALS['link'],$sql) or die('1.'.mysqli_error($GLOBALS['link']));
+$result=mysqli_fetch_row($rs);
+$persen_lulus=$result[2];
+$sql="select * from exam_percentage where id_student='$id_peserta' AND exam_code='$exam_group'";
+  $rs=mysqli_query($GLOBALS['link'],$sql) or die('2.'.mysqli_error($GLOBALS['link']));
+  	echo "<div style='text-align:center'>";
+  	echo "<table>";
+	echo "<tr><td rowspan=2 width=270px> <img style=\"max-height: 100px;\" src= '../assets/img/logo/".$student_data[2]."'> </td><th>ID </th><th colspan=3> ".$student_data[1]."</th></tr>";
+	echo "<tr><th>NAME </th><th colspan=3> ".$student_data[0]."</th></tr>";
+	echo "<tr>
+			<td colspan=5 style=\"height: 60px;\"><h2 style=\"margin: 0px;\">RESULT</h2></td>	
+		  </tr>";
+   echo "
+      <tr>
+        <th rowspan='2'>Subject</th>
+        <th rowspan='2'>Question</th>
+        <th colspan=3>Answer</th>
+      </tr>
+      <tr>
+        <th>True </th>
+        <th>False </th>
+        <th>Not Answer </th>
+      </tr>";
+  while ($row=mysqli_fetch_row($rs)){
+  	$benar+=$row[4];
+  	$question=$row[4]+$row[5]+$row[6];
+    $soal+=$question;
+    $result=mysqli_fetch_row(editSubject($row[3]));
+    echo "
+      <tr>
+        <td>".$result[2]."</td>
+        <td>".$question."</td>
+        <td>".$row[4]."</td>
+        <td>".$row[5]."</td>
+        <td>".$row[6]."</td>
+      </tr>";
+  }
+  $percent=$benar/$soal*100;
+  if ($percent >= $persen_lulus){
+    $lulus=" (LULUS)";
+    $berhasil=true;
+  }else{
+    $lulus=" (<font color=\"red\">TIDAK LULUS!</font>)";
+    $berhasil=false;
+  }
+  echo "<tr>
+  		 <td colspan=5 height=70px><h3 style=\"margin: 0px;\"> Test Score : ".number_format($percent,2)." % <br>$lulus </h3></td>
+  		</tr>
+  		";
+  echo "</table><br><br>";
+  echo "<a href= '../logout.php' class='button button3'>Logout</a>";
+  echo "</div>";
+} 
+
+function startPage(){
+	$row = getDataExam();
+	$logo= getDataStudent($_SESSION['user_id']);
+	echo '
+<div class="row">
+<div class="col-sm-12" style="margin-top: 35px;  background-color: #ffffff75; height: 465px;">
+  <div class="column-left" >
+   <div class="notice">
+    <div class="row">
+      <div class="col-sm-6"><img src="../assets/img/trust-150X38.png" style="padding-top:10px;"></div>
+      <div class="col-sm-6" style="text-align:right"><img src="../assets/img/logo/'.$logo[2].'" style="max-height: 70px;max-width: 135px;"></div>
+    </div>
+	<h4>Cara mengerjakan ujian</h4>
+	<ul>
+		<li>Waktu ujian di hitung saat anda klik "start exam". Lihat counter waktu di sisi kanan atas monitor.</li>
+		<li>Terdapat tombol navigasi soal di bagian kiri layar, Hijau : Sudah Dijawab, Kuning : Ragu-ragu, Putih : Belum Dijawab
+		<li>Kerjakan soal dari yang lebih mudah. Anda dapat skip ataupun kembali ke soal yang belum anda jawab.</li>
+		<li>Semua soal berupa multiple choice, pilih salah satu dari pilihan jawaban.</li>
+		<li>Beberapa soal memiliki informasi gambar. Perhatikan baik-baik sebelum memilih jawaban yang benar.</li>
+	</ul>
+	<h4>Peraturan ujian</h4>
+	<ul>
+		<li>Peserta dilarang mencontek.</li>
+		<li>Peserta dilarang membawa gadget ataupin peralatan lain ke dalam ruang ujian.</li>
+		<li>Saat ujian mulai berjalan, tidak ada penghentian waktu sementara (pause) untuk semua aktifiras di luar ujian, seperti ke toilet dls.</li>
+		<li>Tidak ada penambahan waktu dengan alasan apapun.</li>
+		<li>Apabila terjadi interrupt (lampu mati, komputer hang, dsb) lebih dari 30 menit atau lebih dari 3 kali, maka pengawas ujian berhak menentukan apakah ujian dapat di ulang atau tidak.</li>
+	</ul>
+	<h4>Exam agreement</h4>
+	<p>Dengan mengikuti ujian ini, maka peserta mengakui dan tunduk terhadap seluruh aturan yang diberikan oleh penyelenggara dan seluruh hasil ujian adalah absolut dan tidak dapat di ganggu-gugat</p>
+
+</div>
+  </div>
+  <div class="column-right">
+    <h3 align=center style="color: #fff;"><b>SESSION USER</b></h3>
+	<br>
+	<table style="width:100%;height:135px;" >
+	  <tr>
+		<td style="padding-top: 20px;width: 100px;">ID</td>
+		<td style="padding-top: 20px;" width=10>:</td>
+		<td style="padding-top: 20px;">'.$_SESSION["user_id"].'</td>
+	  </tr>
+	  <tr>
+		<td>NAME</td>
+		<td>:</td>
+		<td>'.$_SESSION["user_name"].'</td>
+	  </tr>
+	  <tr>
+		<td style="padding-bottom: 20px;">PROGRAM</td>
+		<td style="padding-bottom: 20px;">:</td>
+		<td style="padding-bottom: 20px;">'.$row[3].'</td>
+	  </tr>
+	</table>
+	<br>
+	<br>
+	<form id="form-id" action="" method="POST" >
+		<input type="hidden" name="program_id" value='.$row[3].'>
+		<input type="hidden" name="voucher_id" value='.$row[2].'>
+		<input type="hidden" name="exam_group" value='.$row[0].'>
+		<input type="hidden" name="participant_id" value='.$row[1].'>
+		<input type="hidden" name="cmd" value="start">
+		<button type="submit" class="btn btn-info btn-block">Start Exam</button>
+	</form>
+	<form id="form-id" action="" method="POST" >
+		<input type="hidden" name="exam_group" value='.$row[0].'>
+		<input type="hidden" name="participant_id" value='.$row[1].'>
+		<input type="hidden" name="cmd" value="cancel">
+		<button type="submit" class="btn btn-warning btn-block">Cancel</button>
+	</form>
+	
+  </div>
+</div>
+</div>
+</div>';
+}
+
+?>

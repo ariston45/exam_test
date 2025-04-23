@@ -1,0 +1,101 @@
+<?php
+include "../../cfg/general.php";
+include "../../control/inc_function.php";
+include "../../control/inc_function2.php";
+function outputXLS($header,$field,$filename){
+	require_once "../../".$GLOBALS["xls-reader-dir"]."PHPExcel.php";
+	$objPHPExcel = new PHPExcel();
+	$objPHPExcel->getProperties()->setCreator("Trust")
+							 ->setLastModifiedBy("Trust")
+							 ->setTitle("Exam Report")
+							 ->setSubject("Exam Report")
+							 ->setDescription("Exam Report")
+							 ->setKeywords("Exam Report")
+							 ->setCategory("Exam Report");
+$index = ['0'=>'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','Q','R','S','T','U','V','W','X','Y','Z'];
+ 
+//tabel
+$styleArray = array(
+    'font'  => array(
+        'bold'  => true,
+        'color' => array('rgb' => 'FFFFFF')
+  	),
+    'alignment' => array(
+            'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+    )
+);
+$sheet_id=0;
+	
+foreach ($field as $kode_ujian => $field_desc) {
+	//echo $kode_ujian;
+	//print_r($objPHPExcel->getActiveSheet()->setTitle($kode_ujian));
+
+
+	//isinya
+	$baris=1;
+	if ($kode_ujian!='0') {
+		$objPHPExcel->setActiveSheetIndex($sheet_id)
+		->mergeCells('A1:G1')->setCellValue('A1',$kode_ujian);
+		$baris++;
+	}
+	foreach ($field_desc as $no_key => $isi) {
+		//membuat header dan setting header
+		if ($no_key==1) {
+			foreach ($header as $header_key => $header_value) {
+				$objPHPExcel->getSheet($sheet_id)->getStyle($index[$header_key].$baris)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+				$objPHPExcel->getSheet($sheet_id)->getStyle($index[$header_key].$baris)->getFill()->getStartColor()->setRGB('215967');
+				$objPHPExcel->getActiveSheet($sheet_id)->getStyle($index[$header_key].$baris)->applyFromArray($styleArray);
+				$objPHPExcel->getActiveSheet($sheet_id)->getColumnDimension($index[$header_key])->setAutoSize(true);
+				$objPHPExcel->setActiveSheetIndex($sheet_id)
+						->setCellValue($index[$header_key].$baris,$header_value );
+			}
+			$baris++;
+		}
+		//isi komolomya
+			$objPHPExcel->setActiveSheetIndex($sheet_id)
+						->setCellValue($index[0].$baris,$no_key );
+		foreach ($isi as $key => $value) {
+			$objPHPExcel->setActiveSheetIndex($sheet_id)
+						->setCellValue($index[$key+1].$baris,$value );
+		}
+		$baris++;
+	}
+	$objPHPExcel->createSheet();
+	$sheet_id++;
+}		
+	$objPHPExcel->setActiveSheetIndex(0);
+
+	header('Content-Type: application/vnd.ms-excel');
+	header('Content-Disposition: attachment;filename="'.$filename.'.xlsx"');
+	header('Cache-Control: max-age=0');
+	// If you're serving to IE 9, then the following may be needed
+	header('Cache-Control: max-age=1');
+
+	// If you're serving to IE over SSL, then the following may be needed
+	header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+	header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
+	header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+	header ('Pragma: public'); // HTTP/1.0
+
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	//$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+	$objWriter->save('php://output');
+	exit;
+}
+if (isset($_GET['param'])) {
+	$nama 	= json_decode($_GET['nama'],True);
+	$isi	= json_decode($_GET['isi'],True);
+	switch ($_GET['param']) {
+		case 'exam':
+			//print_r($isi);
+			outputXLS($nama,$isi,$_GET['param']);
+			break;
+		
+		default:
+			outputXLS($nama,$isi,$_GET['param']);
+			
+			break;
+	}
+}
+
+?>

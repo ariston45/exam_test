@@ -1,0 +1,186 @@
+<?php
+	$id_customer=$_GET['CC'];
+	if (isset($_POST['cmd'])) {
+		switch ($_POST['cmd']) {
+			case 'Update PIC':  
+				$id = $_POST['id'];
+				$name = $_POST['name'];
+				$address = $_POST['address'];
+				$phone = $_POST['phone'];
+				$email = $_POST['email'];
+				updatePIC($id,$name,$address,$phone,$email);
+			break;
+			case 'Update':
+			$name = $_POST['name'];
+			$address = $_POST['address'];
+			$phone = $_POST['phone'];
+			$email = $_POST['email'];
+			$dob = $_POST['dob'];
+			$pob = $_POST['pob'];
+			$pword = $_POST['pword'];
+			$pword_c = $_POST['pword_check'];
+			$uname = $_POST['username'];
+			$id = $_POST['id'];
+			if ($role != null) {
+				$role = $_POST['role'];
+				updateUser_1($id, $name, $dob, $pob, $address, $phone, $email, $role, $uname);
+			} else {
+				updateUser_2($id, $name, $dob, $pob, $address, $phone, $email, $uname);
+			}
+			if (isset($pword) OR isset($pword_c)) {
+				if ($pword == $pword_c) {
+					setPass($id,$pword_c);
+				}else{
+					echo "<script>window.alert('Your password does not match, please try again.')</script>";
+				}
+			}
+			break;
+			default:
+				# code...
+				break;
+		}
+	}
+?>
+
+<div class="row">
+	<div class="col-lg-12">
+		<h1></h1>
+	</div>
+	<div class="col-md-12">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				<a href="?pg=admin_customer" style="color: #fff" ><i class="fa fa-angle-left"></i> Back</a>  |  Detail Customer <?=$id_customer?>
+			</div>
+			<div class="panel-body">
+				<?php
+			$result=editCustomer($id_customer);
+			$row = mysqli_fetch_array($result);
+				echo "	<div class='col-md-6'>
+						<table style=\"height: 100px;\">
+						<tr>
+							<td style=\" width: 150px;font-weight: 700;\">Id Customer</td>
+							<td style=\" width: 20px;\">:</td>
+							<td>".$row[0]."</td>
+						</tr>
+						<tr>
+							<td style=\" width: 150px;font-weight: 700;\">Customer Name</td>
+							<td >:</td>
+							<td>".$row[1]."</td>
+						</tr>
+						<tr>
+							<td style=\" width: 150px;font-weight: 700;\">Address</td>
+							<td>:</td>
+							<td>".$row[2]."</td>
+						</tr>
+						<tr>
+							<td style=\" width: 150px;font-weight: 700;\">Phone</td>
+							<td>:</td>
+							<td>".$row[3]."</td>
+						</tr>
+						<tr>
+							<td style=\" width: 150px;font-weight: 700;\">Email</td>
+							<td>:</td>
+							<td>".$row[4]."</td>
+						</tr>
+					   </table>
+					  	</div>
+					   	<div class='col-md-6' style='text-align:right;'>
+							<img style='height:125px;border:1px groove;' src='../assets/img/logo/".$row[5]."'>
+						</div>
+					";
+
+			
+		?>	
+			
+		<div class="col-md-12">
+		<h3 style="padding-left: 20px;">User</h3>
+		<div class="table-responsive">
+		  <table class="table">
+		    <tr>
+		    	<th>No.</th>
+		    	<th>Name</th>
+		    	<th>Address</th>
+		    	<th>Phone</th>
+		    	<th>Email</th>
+		    	<th>Role</th>
+		    	<th>Option</th>
+		    </tr>
+		    <?php
+		    $no=1;
+		    $result=cekUser($id_customer);
+			while($row = mysqli_fetch_array($result)){
+				if ($row[5]=='PIC') {
+					$option="<button type=\"button\" class=\"btn btn-xs btn-primary\"  data-id='".$row[0]."' data-toggle=\"modal\" data-target=\"#edit_pic\"><i class=\"fa fa-edit\"></i>  Edit</button> ";
+				}else {
+					$option="<button type=\"button\" class=\"btn btn-xs btn-primary\"  data-id='".$row[0]."' data-toggle=\"modal\" data-target=\"#edit_user\"><i class=\"fa fa-edit\"></i>  Edit</button> ";
+				}
+			echo "
+			<tr>
+				<td>".$no."</td>
+				<td>".$row[1]."</td>
+				<td>".$row[2]."</td>
+				<td>".$row[3]."</td>
+				<td>".$row[4]."</td>
+				<td>".$row[5]."</td>
+				<td>".$option."</td>
+			</tr>
+
+			";
+			$no++;
+			}
+		    ?>
+		  </table>
+		  </div>
+		</div>
+		</div>
+	</div>
+</div>
+</div>
+<!-- Modal edit pic -->
+			<div id="edit_user" class="modal fade">
+				<div class="modal-dialog modal-lg">
+					<div class="modal-content">
+				  	<div class="fetched-data"></div>
+				</div>
+			</div></div>
+<!-- Modal edit pic -->
+			<div class="modal fade" id="edit_pic" role="dialog">
+		    <div class="modal-dialog">
+		        <!-- Modal content-->
+			      <div class="modal-content">
+			        
+			        	<div class="fetched-data"></div>       
+			   
+		        </div>
+			</div>
+			</div>
+<script src='../assets/js/jquery-1.12.0.min.js'></script>
+<script>
+
+			  $(document).ready(function(){
+			    $('#edit_pic').on('show.bs.modal', function (e) {
+			        var rowid = $(e.relatedTarget).data('id');
+			        $.ajax({
+			            type : 'get',
+			            url : 'view_admin/1_edit_pic.php', //Here you will fetch records 
+			            data :  'id='+ rowid, //Pass $id
+			            success : function(data){
+			            $('.fetched-data').html(data);//Show fetched data from database
+			            }
+			        });
+			     });
+			});
+		 $(document).ready(function(){
+			$('#edit_user').on('show.bs.modal', function (e) {
+			var rowid = $(e.relatedTarget).data('id');
+				$.ajax({
+					type : 'get',
+				  url  : 'view_pic/1_edit_user.php', //Here you will fetch records 
+				  data : 'id='+ rowid, //Pass $id
+				  success : function(data){
+				  	$('.fetched-data').html(data);//Show fetched data from database
+				  }
+				});
+			});
+		});
+</script>

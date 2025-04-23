@@ -1,0 +1,21 @@
+
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <script src='../assets/js/jquery-1.12.0.min.js'></script>
+    <script type="text/javascript" src="../assets/js/jquery-ui.js"></script>
+
+        <input type="text" name="txtCountry" id="txtCountry" class="typeahead"/>
+        <input type="text" name="id" id="id" />
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+         var ac_config = {
+             source: "view_admin/server.php",
+             select: function(event, ui){
+                 $("#txtCountry").val(ui.item.cust_name);
+                 $("#id").val(ui.item.id);
+             },
+             minLength:1
+         };
+         $("#txtCountry").autocomplete(ac_config);
+        });
+    </script>

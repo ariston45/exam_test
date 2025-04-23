@@ -1,0 +1,17 @@
+<?php
+session_start();
+?>
+<link rel="icon" href="../assets/img/icon.png" type="image/gif" sizes="16x16">
+<body onload="submitForm()">
+</body>
+<form id="form-id" action='exam.php' method="POST">
+	<input type="" name="cmd" value="end">
+    <input type="hidden" name="student_id" value="<?=$_SESSION['id_peserta']?>">
+    <input type="hidden" name="user_id" value="<?=$_SESSION['user_id']?>">
+    <input type="" name="exam_group" value="<?=$_SESSION['exam_group']?>">
+</form>
+<script>
+function submitForm(){
+	 document.forms['form-id'].submit();
+}
+</script>

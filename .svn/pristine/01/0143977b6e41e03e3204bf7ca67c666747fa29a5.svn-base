@@ -1,0 +1,117 @@
+<?php
+if (isset($_GET['CC'])) {
+	$id = $_GET['CC'];
+	$dat=infoExam($id);
+}
+if (isset($_POST['cmd'])) {
+  switch ($_POST['cmd']) {
+    case 'Release':
+      break;
+    default:
+			# code...
+      break;
+  }
+}
+?>
+<div class="row">
+	<div class="col-lg-12">
+		<h4></h4>
+	</div>
+	<div class="col-md-12">
+		<div class="panel panel-default">
+			<div class="panel-heading">Schedule</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-12">
+						<div class="panel panel-info-costum">
+							<div class="panel-body">
+								<div class="row">
+									<div class="col-md-3">
+										<b>Token</b>
+									</div>
+									<div class="col-md-3">
+										: <?=$dat[0]?>
+									</div>
+									<div class="col-md-3">
+										<b>Alocate</b>
+									</div>
+									<div class="col-md-3">
+										: <?=$dat[2]?>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-3">
+										<b>Program</b>
+									</div>
+									<div class="col-md-3">
+										: <?=$dat[3]?>
+									</div>
+									<div class="col-md-3">
+										<b>Started</b>
+									</div>
+									<div class="col-md-3">
+										: <span id="dataonline"></span>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-3">
+										<b>Proctor</b>
+									</div>
+									<div class="col-md-3">
+										: <?=$dat[4]?>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+        <!-- <button type="button" class="btn btn-outline btn-info btn-sm" data-toggle="modal" data-target="#addclass">Generate Token</button><br><br> -->
+        <?php
+        $result=showStueExam($id);
+         echo $result;
+        ?>
+			</div>
+		</div>
+	</div>
+</div>
+<!--======================-->
+<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+<script>
+	$(document).ready(function(){
+		var id = <?=$dat[0]?>;
+		function getData() {
+			$.ajax({
+				type : 'POST',
+				dataType: 'json',
+				url : 'view_pic/3_pic_datastarted.php',
+				data : {'id':id},
+				success: function (data){
+					$('#dataonline').val(data).fadeIn("slow");
+				}
+			});
+		}
+		getData();
+		etInterval(function () {
+      getData(); 
+    }, 1000);
+	});
+</script>
+<script>
+	var auto_refresh = setInterval(function (){
+		$('#dataonline').load('view_pic/3_pic_datastarted.php').fadeIn("slow");
+	}, 1000); // refresh every 1000 milliseconds
+</script>
+<script>
+	$(document).ready(function() {
+		$('#tbStudents').DataTable({});
+	});
+</script>
+<script type="text/javascript">
+	$(function() {
+	  $( "#student" ).autocomplete({
+		  source: "2_pic_student_data.php",
+			minLength:3
+	  });
+	});
+</script>
+<!--/.row-->

@@ -1,0 +1,81 @@
+<?php
+// header('location:view_pic/pic_dashboard.php?pg=pic_dashboard');
+// print_r("Dashboard Not Ready");
+if (isset($_POST['cmd'])) {
+	switch ($_POST['cmd']) {
+		case 'Search':
+			$a = $_POST['q'];
+			header('location:https://www.google.com/search?q='.$a.'');
+			break;
+		default:
+			# code...
+			break;
+	}
+}
+?>
+<!--  -->
+<div class="row">
+	<div class="col-lg-12">
+		<h4>Dashboard</h4>
+	</div>
+</div>	
+<div class="row">	
+	<div class="col-md-12" id="sum">
+		<div class="panel panel-warning">
+			<div class="panel-heading">Schedules</div>
+			<div class="panel-body">
+				<table class="table table-bordered table-xs" id="tbVoucher">
+					<thead>
+			    	<tr>
+			        <th scope="col">No.</th>
+			        <th scope="col">Customer Name</th>
+			      	<th scope="col">Program</th>
+			        <th scope="col">Type</th>
+			        <th scope="col">Saldo</th>
+			        <th scope="col" width="20%">Option</th>
+			      </tr>
+			    </thead>
+					<tbody>
+					<?php
+					$no = 1;
+					$result = showVoucher($id);
+					while ($row = mysqli_fetch_array($result)) {
+						echo '
+							<tr>
+								<td>' . $no . '</td>
+								<td>' . $row[1] . '</td>
+								<td>' . $row[2] . '</td>
+								<td>' . $row[4] . '</td>
+								<td>' . $row[3] . '</td>
+								<td>
+									<a href ="?pg=detail_voucher&id=' . $row[0] . '" > <button type="button" class="btn btn-xs btn-info "><i class="fa fa-table"></i>  Stock Card</button></a> 
+									<button type="button" class="btn btn-xs btn-primary "  data-id="' . $row[0] . '" data-toggle="modal" data-target="#topup_voucher"><i class="fa fa-shopping-cart"></i>  Transaksi</button> &nbsp
+							</tr>';
+						$no++;
+					}
+					?>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+<!--  -->
+<!-- 1 -->
+<!-- 2 -->
+<script>
+function tum() {
+var x = document.getElementById("sum");
+if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+
+				
+
+
+		<!--/.row-->

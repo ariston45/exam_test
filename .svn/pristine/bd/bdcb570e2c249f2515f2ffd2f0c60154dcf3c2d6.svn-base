@@ -1,0 +1,261 @@
+<?php
+if (isset($_POST['cmd'])) {
+	switch ($_POST['cmd']) {
+		case 'Submit':
+			$name = $_POST['name'];
+			$address = $_POST['address'];
+			$phone = $_POST['phone'];
+			$email = $_POST['email'];
+			$dob = $_POST['dob'];
+			$pob = $_POST['pob'];
+			$pword = $_POST['pword'];
+			$pword_c = $_POST['pword_check'];
+			$role = $_POST['role'];
+			$uname = $_POST['username'];
+			if($pword == $pword_c){
+				$id_g = $_SESSION['admin_group'];
+				$new_id = newIdUser($id_g);
+				addUsers($name,$address,$phone,$email,$dob,$pob,$pword,$pword_c,$id_g,$new_id,$role,$uname);
+			}else{
+				echo "<script>window.alert('Your password does not match, please try again.')</script>";
+			}
+			break;
+		case 'Update':
+			$name = $_POST['name'];
+			$address = $_POST['address'];
+			$phone = $_POST['phone'];
+			$email = $_POST['email'];
+			$dob = $_POST['dob'];
+			$pob = $_POST['pob'];
+			$pword = $_POST['pword'];
+			$pword_c = $_POST['pword_check'];
+			$uname = $_POST['username'];
+			$id = $_POST['id'];
+			$role = $_POST['role'];
+			if ($role != 'role') {
+				updateUser_1($id, $name, $dob, $pob, $address, $phone, $email, $role, $uname);
+			} else {
+				updateUser_2($id, $name, $dob, $pob, $address, $phone, $email, $uname);
+			}
+			if ($pword !="" OR $pword_c !="") {
+				if ($pword == $pword_c) {
+					setPass($id,$pword_c);
+				}else{
+					echo "<script>window.alert('Your password does not match, please try again.')</script>";
+				}
+			}
+			break;
+		case 'Delete':
+			$id = $_POST['id'];
+			delUser($id);
+			break;
+		default:
+			# code...
+			break;
+	}
+}
+?>
+<div class="row">
+	<div class="col-lg-12">
+		<h4></h4>
+	</div>
+	
+	<div class="col-md-12">
+		<div class="panel panel-info">
+			<div class="panel-heading">User</div>
+			<div class="panel-body">
+				<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add_user" type="button">Add User</button><br><br>
+				<table class="table table-xs" id="tbUser">
+					<thead>
+						<tr>
+							<th scope="col">No</th>
+							<th scope="col">Name</th>
+							<th scope="col">Phone</th>
+							<th scope="col">Email</th>
+							<th scope="col">Role</th>
+							<th scope="col">Option</th>
+						</tr>
+					</thead>
+					<tbody>
+					<?php
+						$no = 1;
+						$id_g = $_SESSION['admin_group'];
+						$result = showUsers($id_g);
+						while ($row = mysqli_fetch_array($result)) {
+							echo '
+							<tr>
+								<td>' . $no . '</td>
+								<td>' . $row[1] . '</td>
+								<td>' . $row[2] . '</td>
+								<td>' . $row[3] . '</td>
+								<td>' . $row[4] . '</td>
+								<td>
+									<button type="button" class="btn btn-xs btn-success "  data-id="' . $row[0] . '" data-toggle="modal" data-target="#view_user"><i class="fa fa-search-plus"></i>  View</button>
+									<button type="button" class="btn btn-xs btn-info "  data-id="' . $row[0] . '" data-toggle="modal" data-target="#edit_user"><i class="fa fa-edit"></i>  Edit</button>';
+									if ($_SESSION["admin_level"] != $row[4] ) {
+										echo '&nbsp;<button type="button" class="btn btn-xs btn-danger "  data-id="' . $row[0] . '" data-toggle="modal" data-target="#delete_user"><i class="fa fa-trash"></i> Delete</button>';
+									}
+								echo'</td>
+							</tr>';
+						$no++;
+						}
+					?>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="add_user" class="modal fade">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+	  	<div class="modal-header">
+	    	<h4 class="modal-title">Add New User</h4>
+	    </div>
+	    <div class="modal-body">
+				<div class="row">
+				<div class="col-md-6">
+				<form action="" method="post" autocomplete="off">
+					<div class="form-group">
+						<label>Name</label>
+						<input name="name" type="text" class="form-control" value="" placeholder="name lastname" id="name">
+					</div>
+					<div class="form-group">
+						<label>Place of Birt</label>
+						<input name="pob" type="text" class="form-control" value="" placeholder="City">
+					</div>
+					<div class="form-group">
+						<label>Date of Birth</label>
+						<div class="controls input-append date form_date"  data-date-format="yyyy-mm-dd" data-link-field="dtp_input1" data-date="1980-01-01">
+						<input class="form-control" name="dob" placeholder="yyyy-mm-dd" required>
+						<span class="add-on"><i class="icon-th"></i></span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label>Address</label>
+						<input name="address" type="text" class="form-control" value="" placeholder="Jalan no.1">
+					</div>
+					<div class="form-group">
+						<label>Phone</label>
+						<input name="phone" type="text" class="form-control" value="" placeholder="+62852xx">
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label>Email</label>
+						<input name="email" type="text" class="form-control" value="" placeholder="example@email.com">
+					</div>
+					<div class="form-group">
+						<label>Select Role</label>
+						<select name="role" id="" class="form-control">
+							<option value="Exam Administrator">Exam Administrator</option>
+							<option value="Student Register">Student Register</option>
+							<option value="Proctor">Proctor</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>Username Login</label>
+						<input name="username" type="text" class="form-control" value="" placeholder="username">
+					</div>
+					<div class="form-group">
+						<label>Set Password</label>
+						<input name="pword" type="password" class="form-control" value="" placeholder="***">
+					</div>
+					<div class="form-group">
+						<label>Confirm Password</label>
+						<input name="pword_check" type="password" class="form-control" value="" placeholder="***">
+					</div>
+				</div>
+				</div>
+				</div>	
+		  <div class="modal-footer">
+		   	<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+		    <input type="submit" name="cmd" class="btn btn-primary btn-sm" value="Submit">
+		  </div>
+		</form>
+	</div>
+</div></div>
+<!--======================-->
+<div id="edit_user" class="modal fade">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+	  	<div class="fetched-data"></div>
+	</div>
+</div></div>
+<!--======================-->
+<div id="delete_user" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+	  	<div class="fetched-data"></div>
+	</div>
+</div></div>
+<!--======================-->
+<div id="view_user" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+	  	<div class="fetched-data"></div>
+	</div>
+</div></div>
+<!--======================-->
+<script src='../assets/js/jquery-1.12.0.min.js'></script>
+<script type="text/javascript" src="../assets/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+<script type="text/javascript" src="../assets/js/bootstrap-datetimepicker.id.js" charset="UTF-8"></script>
+<script type="text/javascript">
+   $('.form_date').datetimepicker({
+        language:  'fr',
+        weekStart: 1,
+        todayBtn:  1,
+		autoclose: 1,
+		todayHighlight: 1,
+		startView: 2,
+		minView: 2,
+		forceParse: 0
+    });
+</script>
+<script>
+	$(document).ready(function() {
+		$('#tbUser').DataTable();
+	});
+</script>
+<script>
+	$(document).ready(function(){
+		$('#edit_user').on('show.bs.modal', function (e) {
+		var rowid = $(e.relatedTarget).data('id');
+			$.ajax({
+				type : 'get',
+			  url  : 'view_pic/1_edit_user.php', //Here you will fetch records 
+			  data : 'id='+ rowid, //Pass $id
+			  success : function(data){
+			  	$('.fetched-data').html(data);//Show fetched data from database
+			  }
+			});
+		});
+	});
+	$(document).ready(function(){
+		$('#delete_user').on('show.bs.modal', function (e) {
+			var rowid = $(e.relatedTarget).data('id');
+				$.ajax({
+				type : 'get',
+				url	 : 'view_pic/1_pic_delete_user.php', //Here you will fetch records 
+				data : 'id='+ rowid, //Pass $id
+			  success : function(data){
+			  	$('.fetched-data').html(data);//Show fetched data from database
+			  }
+			});
+		});
+	});
+	$(document).ready(function(){
+		$('#view_user').on('show.bs.modal', function (e) {
+			var rowid = $(e.relatedTarget).data('id');
+				$.ajax({
+				type : 'get',
+				url  : 'view_pic/1_detail_user.php', //Here you will fetch records 
+				data : 'id='+ rowid, //Pass $id
+			  success : function(data){
+			  	$('.fetched-data').html(data);//Show fetched data from database
+			  }
+			});
+		});
+	});
+</script>
+<!--/.row-->

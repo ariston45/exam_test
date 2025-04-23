@@ -1,0 +1,244 @@
+<?php
+require_once "../../classes/vendor/autoload.php";
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+// Create new Spreadsheet object
+$spreadsheet = new Spreadsheet();
+// Set workbook properties
+$spreadsheet->getProperties()->setCreator('Rob Gravelle')
+  ->setLastModifiedBy('TRUST')
+  ->setTitle('A Simple Excel Spreadsheet')
+  ->setSubject('PhpSpreadsheet')
+  ->setDescription('A Simple Excel Spreadsheet generated using PhpSpreadsheet.')
+  ->setKeywords('Microsoft office 2013 php PhpSpreadsheet')
+  ->setCategory('Report Exam');
+/////////////////////////////////////////////////////////////////////////////////////////////////
+include "../../cfg/general.php";
+include "../../control/inc_function.php";
+include "../../control/inc_function2.php";
+connectdb();
+$idg = $_GET['idg'];
+$filename = $name = $_GET['name'];
+$date1 = $_GET['d1'];
+$date2 = $_GET['d2'];
+$programs = $_GET['pro'];
+
+function setData($idg, $date1, $date2, $programs)
+{
+  $date_1 = "2018-11-26";
+  $date_2 = "2018-11-28";
+  $program = 1;
+  if ($program != 1) {
+    $sql = "SELECT
+    a.exam_code,
+    SUBSTRING_INDEX( SUBSTRING_INDEX( a.group_name, '.', '2' ), '.', '-1' ) id_program,
+    c.program_name,
+    b.classroom,
+    b.proctor,
+    b.date,
+    b.start_time 
+  FROM
+    exam_group a
+    INNER JOIN exam_schedule b ON a.exam_code = b.exam_group
+    LEFT JOIN programs c ON SUBSTRING_INDEX( SUBSTRING_INDEX( a.group_name, '.', '2' ), '.', '-1' ) = c.id_program
+  WHERE
+    SUBSTRING_INDEX( SUBSTRING_INDEX( a.group_name, '.', 2 ), '.',- 1 ) = '$program' 
+    AND b.date BETWEEN '$date_1' AND '$date_2'";
+  } else {
+    $sql = "SELECT
+    a.exam_code,
+    SUBSTRING_INDEX( SUBSTRING_INDEX( a.group_name, '.', '2' ), '.', '-1' ) id_program,
+    c.program_name,
+    b.classroom,
+    b.proctor,
+    b.date,
+    b.start_time 
+  FROM
+    exam_group a
+    INNER JOIN exam_schedule b ON a.exam_code = b.exam_group
+    LEFT JOIN programs c ON SUBSTRING_INDEX( SUBSTRING_INDEX( a.group_name, '.', '2' ), '.', '-1' ) = c.id_program
+  WHERE 
+    b.date BETWEEN '$date_1' AND '$date_2'";
+  }
+  $res = mysqli_query($GLOBALS['link'], $sql) or die(mysqli_error($GLOBALS['link']) . '<br>' . $sql);
+  return $res;
+}
+
+function setDataInfo($id)
+{
+  $sql = "SELECT a.exam_code,SUBSTRING_INDEX( a.id_student, '.', 1 ) id,b.fname,c.date,c.name_class, c.fname
+  FROM
+    exam_session a
+    LEFT JOIN students b ON SUBSTRING_INDEX( a.id_student, '.', 1 ) = b.idstudents
+    LEFT JOIN (
+    SELECT
+      aa.exam_group,
+      aa.date,
+      aa.start_time,
+      bb.name_class,
+      cc.fname,
+      aa.token 
+    FROM
+      exam_schedule aa
+      INNER JOIN exam_class bb ON aa.classroom = bb.id_class
+      INNER JOIN users cc ON aa.proctor = cc.id_user 
+    ) c ON a.exam_code = c.exam_group 
+  WHERE
+    a.exam_code = $id";
+  $res = mysqli_query($GLOBALS['link'], $sql) or die(mysqli_error($GLOBALS['link']) . '<br>' . $sql);
+  return $res;
+}
+
+function setValue($id)
+{
+  $sql = "SELECT a.*, b.subject_name FROM exam_percentage a LEFT JOIN subject_ls b ON a.id_subject=b.id_subject WHERE a.exam_code=$id";
+  $res = mysqli_query($GLOBALS['link'], $sql) or die(mysqli_error($GLOBALS['link']) . '<br>' . $sql);
+  return $sql;
+}
+
+function selClass($id)
+{
+  $sql = "SELECT a.name_class FROM exam_class a INNER JOIN exam_schedule b ON a.id_class=b.classroom WHERE b.exam_group='$id'";
+  $res = mysqli_query($GLOBALS['link'], $sql) or die(mysqli_error($GLOBALS['link']) . '<br>' . $sql);
+  $dat = mysqli_fetch_array($res);
+  return $dat[0];
+}
+
+function selProgram($id)
+{
+  $sql = "SELECT a.program_name FROM programs a WHERE a.id_program = '$id'";
+  $res = mysqli_query($GLOBALS['link'], $sql) or die(mysqli_error($GLOBALS['link']) . '<br>' . $sql);
+  $dat = mysqli_fetch_array($res);
+  return $dat[0];
+}
+
+function selProctor($id)
+{
+  $sql = "SELECT a.fname FROM users a WHERE a.id_user = '$id'";
+  $res = mysqli_query($GLOBALS['link'], $sql) or die(mysqli_error($GLOBALS['link']) . '<br>' . $sql);
+  $dat = mysqli_fetch_array($res);
+  return $dat[0];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// $spreadsheet->getActiveSheet(0)->setTitle('Main Page');
+$i = 0;
+$n = 1;
+$cidx = 1;
+$arr = array();
+$prog = setData($idg, $date1, $date2, $programs);
+while ($row = mysqli_fetch_array($prog)) {
+  $arr[] = $row[2];
+}
+$results = array_unique($arr);
+sort($results);
+$cnt = count($results);
+while ($cidx <= $cnt) {
+  $spreadsheet->createSheet($cidx)->setTitle($results[$i]); //loping program
+  $kal = 3;
+  $r = 1;
+  $a = 1;
+  $ar_group = setData($idg, $date1, $date2, $programs);
+  while ($row = mysqli_fetch_array($ar_group)) {
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('A' . $a, 'No'); // looping header 
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('B' . $a, 'Tanggal');
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('C' . $a, 'Kelas');
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('D' . $a, 'Program');
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('E' . $a, 'Grup');
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('F' . $a, 'Proktor');
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('G' . $a, 'ID');
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('H' . $a, 'Nama');
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('I' . $a, 'Nilai');
+    $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('J' . $a, 'Keterangan');
+    $idx = 1;
+    $j = 0;
+    $arr = array();
+    $par = "K";
+    $sub = array();
+    $subs = setValue($row[0]);
+    while ($subfil = mysqli_fetch_array($subs)) {
+      $sub[] = $subfil[7];
+    }
+    $sub_res = array_unique($sub);
+    sort($sub_res);
+    $subs_cnt = count($sub_res);
+    while ($idx <= $subs_cnt) {
+      $arr[$idx] = $par;
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue($par . $a, $sub_res[$j]);
+      $par++;
+      $idx++;
+      $j++;
+    }
+    $a++;
+    $data_1 = setDataInfo($row[0]);
+    $node = 10;
+    $no = 1;
+    while ($row = mysqli_fetch_array($data_1)) {
+      $idg = $row[0];
+      $id = $row[1];
+      $student = $row[2];
+      $date = $row[3];
+      $class = $row[4];
+      $proctor = $row[5];
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('A' . $a, $no);
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('B' . $a, $date);
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('C' . $a, $class);
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('D' . $a, $sub_res[$j]);
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('E' . $a, 'Group ' . $idg);
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('F' . $a, $proctor);
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('G' . $a, $id);
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('H' . $a, $student);
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('I' . $a, '</>');
+      $spreadsheet->setActiveSheetIndex($cidx)->setCellValue('J' . $a, '</>');
+      $idx = 1;
+      $val = 3;
+      $arr = array();
+      $par = "K";
+      while ($idx <= $val) {
+        $arr[$idx] = $par;
+        $spreadsheet->setActiveSheetIndex($cidx)->setCellValue($par . $a, 'Val');
+        $par++;
+        $idx++;
+      }
+      $a++;
+      $no++;
+    }
+    $a++;
+    $r++;
+  }
+  $cidx++;
+  $n++;
+  $i++;
+}
+die();
+//////////////////////////////////////////////////////////////////////////////////////////////
+// $cidx = 1;
+// $n = 1;
+// while ($cidx <= 5) {
+  
+// }
+
+$sheetIndex = $spreadsheet->getIndex(
+  $spreadsheet->getSheetByName('Worksheet')
+);
+$spreadsheet->removeSheetByIndex($sheetIndex);
+$spreadsheet->setActiveSheetIndex(0);
+// die();
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Set active sheet index to the first sheet, so Excel opens this as the first sheet
+// Redirect output to a client's web browser (Xlsx)
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+header('Cache-Control: max-age=0');
+// If you're serving to IE 9, then the following may be needed
+header('Cache-Control: max-age=1');
+// If you're serving to IE over SSL, then the following may be needed
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+header('Pragma: public'); // HTTP/1.0
+// new code:
+$writer = new Xlsx($spreadsheet);
+$writer->save('php://output');
+exit;
+?>

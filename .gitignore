@@ -1,0 +1,12 @@
+# Ignore
+assets/images/**
+# assets/img/**
+assets/img-soal/**
+tmp/**
+cfg/**
+#cfg/general.php
+cfg/general.php
+cfg/general.php
+
+# Allow
+!assets/img/TR-ACADEMIC-150x38.png

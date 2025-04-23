@@ -1,0 +1,12 @@
+		<ul class="nav menu">
+			<li <?php if (!isset($_GET['pg']) OR $_GET['pg'] == 'reg_dashboard') {echo 'class="active"';} ?>>
+				<a href="?pg=reg_dashboard"><em class="fa fa-dashboard">&nbsp;</em> Dashboard</a>
+			</li>
+			<li <?php if (isset($_GET['pg']) AND $_GET['pg'] == 'reg_student') {echo 'class="active"';} ?>>
+				<a href="?pg=reg_student"><em class="fa fa-dashboard">&nbsp;</em> Student</a>
+			</li>
+			<!-- <li <?php #if (isset($_GET['pg']) AND $_GET['pg'] == 'reg_report') {echo 'class="active"';} ?>>
+				<a href="?pg=reg_report"><em class="fa fa-dashboard">&nbsp;</em> Report</a>
+			</li> -->
+			<!-- <li><a href="logout.php"><em class="fa fa-toggle-off">&nbsp;</em>Logout</a></li> -->
+		</ul>

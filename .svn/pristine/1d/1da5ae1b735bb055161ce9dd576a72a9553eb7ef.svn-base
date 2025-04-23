@@ -1,0 +1,17 @@
+<?php
+switch ($_GET['pg']) {
+  case 'reg_dashboard':
+    include 'view_student_reg/reg_dashboard.php';
+    break;
+  case 'reg_student':
+    include 'view_student_reg/reg_student.php';
+    break;
+  case 'reg_report':
+    include 'view_student_reg/reg_report.php';
+    break;
+  
+  default:
+    include 'view_student_reg/reg_dashboard.php';
+    break;
+}
+?>

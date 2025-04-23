@@ -1,0 +1,128 @@
+<?php
+include "../cfg/general.php";
+include "../control/inc_function.php";
+include "../control/inc_function2.php";
+connectdb();
+/*if (!cekAdminLogin()){
+	header('location:index.php');
+}
+if (!checkpriviledge($_SESSION["admin_group"],modulname())){
+	header('location:dashboard.php');
+}*/
+//die($_POST['cmd4']);
+if (isset($_POST['cmd4'])) {
+switch ($_POST['cmd4']) {
+		case 'Update':
+			$name = $_POST['name'];
+			$address = $_POST['address'];
+			$phone = $_POST['phone'];
+			$email = $_POST['email'];
+			$dob = $_POST['dob'];
+			$pob = $_POST['pob'];
+			$pword = $_POST['pword'];
+			$pword_c = $_POST['pword_check'];
+			$uname = $_POST['username'];
+			$id = $_POST['id'];
+			$role = $_POST['role'];
+			if ($role != 'role') {
+				updateUser_1($id, $name, $dob, $pob, $address, $phone, $email, $role, $uname);
+			} else {
+				updateUser_2($id, $name, $dob, $pob, $address, $phone, $email, $uname);
+			}
+			if ($pword !="" OR $pword_c !="") {
+				if ($pword == $pword_c) {
+					setPass($id,$pword_c);
+				}else{
+					echo "<script>window.alert('Your password does not match, please try again.')</script>";
+				}
+			}
+			break;
+		default:
+			die('mati');
+			break;
+	}
+}
+if ($_SESSION["admin_level"]=="Administrator"){
+	$menu="admin_sm.php";
+	$container="admin_container.php";
+}elseif ($_SESSION["admin_level"]=="PIC"){
+	$menu="pic_sm.php";
+	$container="pic_container.php";
+}elseif ($_SESSION["admin_level"]=="Exam Administrator"){
+	$menu="exam_sm.php";
+	$container="exam_container.php";
+}elseif ($_SESSION["admin_level"] == "Student Register") {
+	$menu = "register_sm.php";
+	$container = "register_container.php";
+}elseif ($_SESSION["admin_level"] == "Proctor") {
+	$menu = "proctor_sm.php";
+	$container = "proctor_container.php";
+}
+else{
+	$maincss="ta.css";
+	$menucss="ta_menu.css";
+	$headerimg="ta_on_H.png";
+	$footerimg="ta_on_f.png";
+	$JQtheme="cupertino";
+	$menu="menu_ta.php";
+}
+?>
+<html>
+	<head>
+		<title><?php echo $_SESSION["admin_level"];?></title>
+		<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+		<link href="../assets/css/font-awesome.min.css" rel="stylesheet">
+		<link href="../assets/css/datepicker3.css" rel="stylesheet">
+		<link href="../assets/css/styles.css" rel="stylesheet">
+		<link href="../assets/css/jquery.dataTables.min.css" rel="stylesheet">
+		<script type="text/javascript" src="../assets/js/function.js"></script>
+		<link href="../assets/css/bootstrap-datetimepicker.min.css" rel="stylesheet" media="screen">
+		<link href="../assets/css/additional-style.css" rel="stylesheet" media="screen">	
+	</head>
+<body>
+	<?php 
+	 autoFinish();
+	 createLog();
+	?>
+	<nav class="navbar navbar-custom navbar-fixed-top" role="navigation">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#sidebar-collapse"><span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span></button>
+				<a class="navbar-brand" href="#"><span>EXAM</span> Engine</a>
+				<ul class="nav navbar-top-links navbar-right">
+					<li class="dropdown"><a data-toggle="dropdown" href="#" style="color: white;"><em class="fa fa-user-circle-o"></em><?php echo $_SESSION["admin_level"];?></a>
+						<ul class="dropdown-menu">
+							<li>
+								<div class="all-button"><a href="#" data-id="<?=$_SESSION['admin_id']?>" data-toggle="modal" data-target="#edit_akun"><em class="fa fa-user"></em> Akun</a></div>
+							</li>
+							<li class="divider"></li>
+							<li>
+								<div class="all-button"><a href="logout.php"><em class="fa fa-power-off"></em> Logout</a></div>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div><!-- /.container-fluid -->
+	</nav>
+
+	<div id="sidebar-collapse" class="col-sm-3 col-lg-2 sidebar">
+		<div class="profile-sidebar">
+			<div class="profile-userpic">
+				<?php
+				//print_r($_SESSION['admin_group']);
+					$image = getLogo($_SESSION['admin_group']);
+					$logo = $image[0];
+				?>
+				<img src="../assets/img/logo/<?=$logo?>" class="img-responsive" alt="" align="right">
+			</div>
+			<div class="clear"></div>
+		</div>
+		
+		<div class="divider"></div>
+		<!-- Side Menu Include -->
+<?php include $menu;?>
+	</div><!--/.sidebar-->
